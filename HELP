@@ -1,0 +1,40 @@
+NAME
+	turtle - Hybris PSE multitool. Automates SSH connectivity to Hybris servers and other functions.
+	Written by Goh Maehashi and Tom Kendall.
+
+USAGE
+	turtle  [-b browser] [-c connect] [-i info] [-j jump] [-l list]
+		[-r refresh] [-w wiki] [-y hosts] [-push | -pull] <customer_code> <environment>
+
+EXAMPLES
+	CONNECT MODE (c, -c, --connect)
+	turtle c vnx s app		Connect to all app servers
+	turtle c vnx d web 1		Connect to web server 001.
+	turtle c vnx p srch 1-4		Connect to search servers 1-4.
+	turtle c vnx p appall		Connect to all app and admin servers. 
+
+	BROWSER MODE (b, -b, --browser)
+	turtle b vnx			Requests environment from user then asks for URL.
+	turtle b vnx p			Allows opening of HAC, HMC, STORE etc
+	turtle b vnx p hac		Open the HAC page of the customer. 
+
+	INFO MODE (i, -i, --info)
+	turtle i vnx			Requests environment and displays overview of customer and environment.
+	turtle i vnx p			Displays an overview of the customer and their environment.
+
+	SYNC MODE (push,-push,—push, pull,-pull,—pull)
+	turtle push smk p adm		Push local files to remote adm Servers
+	turtle push smk p adm 1         Push local files to remote adm 001
+	turtle pull smh p adm 		Pull files from remote adm Servers to local 
+	turtle pull smh p adm 1		Pull files from remote adm 001 to local 
+
+	OTHER MODES
+	turtle l,--list			Displays all local environment files and their project names.
+	turtle j,--jump fr		Connect to a datacentre's jumpbox. Can also be used for ma.		
+	turtle r,--refresh		Refresh the environment directory.
+	turtle s,--settings		Enables editing of Turtle's settings through vim.
+	turtle h,--help			Displays this screen.
+	turtle y,--hosts		Generates a hosts file based on the environment directory.
+	turtle w,--wiki			Open pages related to the project's wiki pages.
+	
+

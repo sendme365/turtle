@@ -1,0 +1,31 @@
+# ----- User Credentials ----- #
+
+# Your Hybris AD user. Usually firstname_lastname.
+hybris_username=ted_teng
+
+# Your Hybris Wiki username. Usually your SAP email address.
+wiki_username=ted.teng@sap.com
+
+# (Optional) Your Hybris Wiki password. If you choose not to enter this, the script will ask you each time it is required.
+wiki_password=
+
+# ----- Other Settings ----- #
+
+# Open turtle sessions in a new window.
+newWindowMode=true
+
+# Window width.
+width=140
+
+# Window height.
+height=30
+
+# Automatically download new envs if they are not from today.
+#autoDailyRefresh=false
+autoDailyRefresh=true
+
+# Prevent turtle from halting when experiencing VPN check errors. (true|false)
+ignoreVpnCheck=true
+
+# If new window mode is false, clear the screen before beginning server connections.
+clearAfterConnect=true
