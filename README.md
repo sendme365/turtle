@@ -34,10 +34,12 @@ EXAMPLES
 	turtle pull smh p adm 		Pull files from remote adm Servers to local 
 	turtle pull smh p adm 1		Pull files from remote adm 001 to local 
 
-	VPN MODE (v,vpn,-v,-vpn)
-	turtle vpn all start		Start MA/FR VPN
-	turtle vpn all stop		Stop MA/FR VPN
-	turtle vpn all status		Check MA/FR VPN status 
+	VPN MODE (v,vpn,-v,-vpn) 
+	*(Password: sudo password, VPN RSA Password:Token key)
+
+	turtle vpn all start	Start MA/FR VPN  
+	turtle vpn all stop		Stop MA/FR VPN 
+	turtle vpn all status	Check MA/FR VPN status 	
 	turtle vpn ma start		Start MA VPN
 	turtle vpn fr stop		Stop FR VPN
 
