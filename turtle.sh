@@ -2,7 +2,7 @@
 cd $(dirname "$0") || exit 1 
 
 # ------------------------------------------------------------------------------------------------
-# Turtle for iTerm - TURTLE_V9_v1.SH 
+# Turtle for iTerm - TURTLE.SH 
 # ------------------------------------------------------------------------------------------------
 #
 # DESCRIPTION:  Turtle is a terminal session launcher for iTerm on Mac. It automates the process
@@ -17,7 +17,7 @@ cd $(dirname "$0") || exit 1
 # USAGE:		turtle  [-b browser] [-c connect] [-i info] [-j jump] [-l list]
 #	      				[-r refresh] [-w wiki] [-y hosts] <customer_code> <environment>
 #
-# VERSION:	 	9 
+# VERSION:	 	9.1 
 # 
 # ------------------------------------------------------------------------------------------------
 
@@ -333,19 +333,25 @@ function getRandomHostnameFromEnvFile {
 	echo "$temp_hostname"
 }
 
+
 function getCurrentVPNConnection {
 	
 	# Extract ppp0 address from ifconfig.
-	inetppp0=$(ifconfig | awk '/ppp0/{getline; print}' | awk '{$1=$1};1')
-	inetppp0=${inetppp0% -->*}
+	ppp_array=(`ifconfig | awk '/ppp/{getline; print}' | awk '{print $2}'`)
 
-	# Check IP range from extracted IP.
-	if [[ $inetppp0 == "inet 10.17"* ]]; then
-		echo "Boston"
-	elif [[ $inetppp0 == "inet 10.33"* ]]; then
-		echo "Frankfurt"
+	if [[ ${#ppp_array[@]} > 0 ]]; then
+		for i in ${ppp_array[@]};do
+			# Check IP range from extracted IP.
+			if [[ $i == "10.17"* ]]; then
+				echo "Boston VPN is running"
+			elif [[ $i == "10.33"* ]]; then
+				echo "Frankfurt VPN is running"
+			else
+				echo "-1"
+			fi
+		done
 	else
-		echo "-1"
+		echo "No VPN Connected"		
 	fi
 
 }
@@ -1375,10 +1381,10 @@ EOF
 function runPush {
 	# Detect whether the user implied the connection by dropping the "c" parameter.
 	if [[ $1 == "implied" ]]; then
-		checkParams Connect 2 unstrict
+		checkParams Push 2 unstrict
 		swapMode
 	else
-		checkParams Connect 3 unstrict
+		checkParams Push 3 unstrict
 	fi
 
 	downloadFileIfDoesntExist
@@ -1387,8 +1393,6 @@ function runPush {
 
 	# rsync files from local to remote 
     for i in ${serverListing[*]}; do
-		# echo  -e "Copy \033[32m $src_path \033[37m To \033[32m $hybris_username@$i.hybrishosting.com:${desc_path:-/home/$hybris_username/} \033[37m"
-		# rsync -avzIh --exclude=.[!.]* -e ssh --progress $src_path $hybris_username@$i.hybrishosting.com:${desc_path:-/home/$hybris_username/}
 		runPushsync
 	done
 }
@@ -1410,10 +1414,10 @@ EOF
 function runPull {
 	# Detect whether the user implied the connection by dropping the "c" parameter.
 	if [[ $1 == "implied" ]]; then
-		checkParams Connect 2 unstrict
+		checkParams Pull 2 unstrict
 		swapMode
 	else
-		checkParams Connect 3 unstrict
+		checkParams Pull 3 unstrict
 	fi
 
 	downloadFileIfDoesntExist
@@ -1422,8 +1426,6 @@ function runPull {
 	
 	# rsync files from remote to local
     for i in ${serverListing[*]}; do
-		# echo  -e "Copy \033[32m $hybris_username@$i.hybrishosting.com:${src_path:-/home/$hybris_username/} \033[37m To \033[32m ${desc_path:-./temp/$i/} \033[37m"
-		# rsync -avzIh --exclude=.[!.]* -e ssh --progress $hybris_username@$i.hybrishosting.com:${src_path:-/home/$hybris_username/} ${desc_path:-./temp/$i/}
 		runPullsync
 
 	done
@@ -1445,32 +1447,102 @@ EOF
 }
 
 
+
+function dc_start {
+	case "$param2" in
+		"ma"|"MA")			
+			DC="209.202.160.253:10443"
+			openfortivpn_up
+		;;
+		"fr"|"FR")
+			DC="62.209.35.109:10443"
+			openfortivpn_up
+		;;		
+		"all"|"ALL"|"All")
+			DC="209.202.160.253:10443"
+			openfortivpn_up
+			DC="62.209.35.109:10443"
+			openfortivpn_up
+		;;		
+		*)
+			warn "Unknown DC '$DC'" 
+		;;
+	esac
+}
+
+
+function dc_stop {
+	case "$param2" in
+		"ma"|"MA")			
+			DC="|grep 209.202.160.253"
+			openfortivpn_down
+		;;
+		"fr"|"FR")
+			DC="|grep 62.209.35.109"
+			openfortivpn_down
+		;;		
+		"all"|"ALL"|"All")
+			DC=""
+			openfortivpn_down
+		;;		
+		*)
+			warn "Unknown DC '$DC'" 
+		;;
+	esac
+}
+
+
+function openfortivpn_up {
+	#trusted_cert=`echo $sudopwd|sudo -S openfortivpn $DC -u $hybris_username -p $pwd | grep trusted-cert | head -n 1 | awk -F "--" ' { print $2} '`  	
+	trusted_cert=`sudo -S openfortivpn $DC -u $hybris_username -p $pwd | grep trusted-cert | head -n 1 | awk -F "--" ' { print $2} '` >/dev/null 
+	#echo $sudopwd | sudo -S openfortivpn $DC -u $hybris_username -p $pwd --$trusted_cert &
+	nohup sudo -S openfortivpn $DC -u $hybris_username -p $pwd --$trusted_cert >nohup.out 2>&1 &
+
+}
+
+
+function openfortivpn_down {
+
+	ps -ef | grep openfortivpn $DC | grep -v grep | awk '{print $2}' | sudo xargs kill -9
+
+	echo "VPN Shutdown"
+	
+}
+
+
+
 function runVpn {
-	# Detect whether the user implied the connection by dropping the "c" parameter.
+	# 
+	checkParams Vpn 2 strict
+	mode=$param3
+ 
 
-	if [[ $1 == "implied" ]]; then
-		checkParams Connect 2 unstrict
-		swapMode
-	else
-		checkParams Connect 3 unstrict
-	fi
+	case "$mode" in
+		"start")
+#			read -r -p "Sudo Password:" -s sudopwd
+#			echo
+			read -r -p "VPN RSA Password:" -s pwd
+			echo			
+			dc_start
+								
 
-	downloadFileIfDoesntExist
-	parseServers	
-
-	# # Detect whether id_rsa.pub exist or not
-	# if [ -f ~/.ssh/id_rsa.pub ]; then
- #    	echo 
- #    else
- #    	echo "~/.ssh/id_rsa.pub not exists and Generating public/private rsa key pair"
- #    	ssh-keygen -t rsa -C `whoami`@`hostname` -f ~/.ssh/id_rsa -q -P ""
- #    fi
-
- #    read -s -p "Please enter your AD Passowrd:" passwd 
- 	passwd="Hybris@123"
- 	for i in ${serverListing[*]}; do
-    	sshCopyJobs  &
-	done
+		;;
+		"stop")
+			dc_stop
+			
+		;;	
+		"restart")
+			dc_stop
+			
+		;;	
+		"status")
+			getCurrentVPNConnection
+			
+		;;		
+		*)
+			warn "Unknown DC '$DC'" 
+		;;
+	esac
 }
 
 function runSettings {
@@ -1551,7 +1623,7 @@ case "$mode" in
 	    runPull "normal"
 	;;
 	"vpn"|"-vpn"|"--vpn")
-	    runVpn "implied"
+	    runVpn  
 	;;
 	*)
 		warn "Unknown mode '$mode' - assuming Connect"
